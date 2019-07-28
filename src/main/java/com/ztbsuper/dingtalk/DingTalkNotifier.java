@@ -21,9 +21,14 @@ import org.kohsuke.stapler.QueryParameter;
 import ren.wizard.dingtalkclient.DingTalkClient;
 import ren.wizard.dingtalkclient.message.DingMessage;
 import ren.wizard.dingtalkclient.message.LinkMessage;
+import ren.wizard.dingtalkclient.message.MarkdownMessage;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
+
 
 /**
  * @author uyangjie
@@ -35,14 +40,16 @@ public class DingTalkNotifier extends Notifier implements SimpleBuildStep {
     private String message;
     private String imageUrl;
     private String jenkinsUrl;
+    private String firimUrl;
 
     @DataBoundConstructor
-    public DingTalkNotifier(String accessToken, String notifyPeople, String message, String imageUrl, String jenkinsUrl) {
+    public DingTalkNotifier(String accessToken, String notifyPeople, String message, String imageUrl, String jenkinsUrl, String firimUrl) {
         this.accessToken = accessToken;
         this.notifyPeople = notifyPeople;
         this.message = message;
         this.imageUrl = imageUrl;
         this.jenkinsUrl = jenkinsUrl;
+        this.firimUrl = firimUrl;
     }
 
     public String getAccessToken() {
@@ -90,16 +97,50 @@ public class DingTalkNotifier extends Notifier implements SimpleBuildStep {
         this.jenkinsUrl = jenkinsUrl;
     }
 
+    public String getFirimUrl() {
+        return firimUrl;
+    }
+
+    @DataBoundSetter
+    public void setFirimUrl(String firimUrl) {
+        this.firimUrl = firimUrl;
+    }
+
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener) throws InterruptedException, IOException {
         String buildInfo = run.getFullDisplayName();
+        //
+        List<String> items = new ArrayList<>();
+        String imageURL = MarkdownMessage.getImageText(imageUrl);
+        String firimURL = MarkdownMessage.getLinkText("二维码地址",firimUrl);
+        List<String> atMobiles = Arrays.asList(notifyPeople.split(","));
+
+        items.add(MarkdownMessage.getHeaderText(4,buildInfo));
+        items.add(MarkdownMessage.getReferenceText(imageURL));
+        items.add("\n");
+        items.add(MarkdownMessage.getReferenceText(message));
+        for (String item : atMobiles) {
+            items.add(MarkdownMessage.getReferenceText('@'+ item));
+        }
+        items.add(MarkdownMessage.getReferenceText(firimURL));
+
+        MarkdownMessage markDownMsg = MarkdownMessage.builder()
+        .title(buildInfo)
+        .items(items)
+        .atMobiles(atMobiles)
+        .build();
+
+        System.out.println(markDownMsg.toJson());
+
         if (!StringUtils.isBlank(message)) {
-            sendMessage(LinkMessage.builder()
-                    .title(buildInfo + message)
-                    .picUrl(imageUrl)
-                    .text(message)
-                    .messageUrl((jenkinsUrl.endsWith("/") ? jenkinsUrl : jenkinsUrl + "/") + run.getUrl())
-                    .build());
+            // sendMessage(LinkMessage.builder()
+            //         .title(buildInfo + message)
+            //         .picUrl(imageUrl)
+            //         .text(message)
+            //         .messageUrl((jenkinsUrl.endsWith("/") ? jenkinsUrl : jenkinsUrl + "/") + run.getUrl())
+            //         .build());
+
+            sendMessage(markDownMsg);
         }
     }
 
