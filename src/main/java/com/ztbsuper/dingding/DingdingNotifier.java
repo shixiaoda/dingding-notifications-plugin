@@ -79,7 +79,7 @@ public class DingdingNotifier extends Notifier {
         return jumpUrl;
     }
 
-    public String accessToken2() {
+    public String getAccessToken2() {
         return accessToken2;
     }
 
