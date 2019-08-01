@@ -16,6 +16,17 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import ren.wizard.dingtalkclient.DingTalkClient;
+import ren.wizard.dingtalkclient.message.DingMessage;
+import ren.wizard.dingtalkclient.message.LinkMessage;
+import ren.wizard.dingtalkclient.message.MarkdownMessage;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
+
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Created by Marvin on 16/10/8.
  */
@@ -41,7 +52,17 @@ public class DingdingServiceImpl implements DingdingService {
 
     private String api;
 
-    public DingdingServiceImpl(String jenkinsURL, String token, boolean onStart, boolean onSuccess, boolean onFailed, boolean onAbort, TaskListener listener, AbstractBuild build) {
+    private String notifyPeople;
+
+    private String message;
+
+    private String imageUrl;
+
+    private String jumpUrl;
+
+    private String accessToken;
+
+    public DingdingServiceImpl(String jenkinsURL, String token, boolean onStart, boolean onSuccess, boolean onFailed, boolean onAbort, TaskListener listener, AbstractBuild build, String notifyPeople, String message, String imageUrl, String jumpUrl) {
         this.jenkinsURL = jenkinsURL;
         this.onStart = onStart;
         this.onSuccess = onSuccess;
@@ -50,6 +71,11 @@ public class DingdingServiceImpl implements DingdingService {
         this.listener = listener;
         this.build = build;
         this.api = apiUrl + token;
+        this.notifyPeople = notifyPeople;
+        this.message = message;
+        this.imageUrl = imageUrl;
+        this.jumpUrl = jumpUrl;
+        this.accessToken = token;
     }
 
     @Override
@@ -84,7 +110,8 @@ public class DingdingServiceImpl implements DingdingService {
         logger.info(link);
         if (onSuccess) {
             logger.info("send link msg from " + listener.toString());
-            sendLinkMessage(link, content, title, pic);
+            // sendLinkMessage(link, content, title, pic);
+            sendOnSuccessMessage();
         }
     }
 
@@ -116,8 +143,36 @@ public class DingdingServiceImpl implements DingdingService {
         }
     }
 
-    private void sendTextMessage(String msg) {
+    private void sendOnSuccessMessage() {
+        String buildInfo = String.format("%s%s", build.getProject().getDisplayName(), build.getDisplayName());
+        List<String> items = new ArrayList<>();
+        String imageURL = MarkdownMessage.getImageText(imageUrl);
+        String jumpURL = MarkdownMessage.getLinkText("二维码地址",jumpUrl);
+        List<String> atMobiles = Arrays.asList(notifyPeople.split(","));
 
+        items.add(MarkdownMessage.getHeaderText(4,buildInfo));
+        items.add(MarkdownMessage.getReferenceText(imageURL));
+        items.add("\n");
+        items.add(MarkdownMessage.getReferenceText(message));
+        for (String item : atMobiles) {
+            if (item.length() == 11) {
+                items.add(MarkdownMessage.getReferenceText('@'+ item));
+            }
+        }
+        items.add(MarkdownMessage.getReferenceText(jumpURL));
+
+        MarkdownMessage markDownMsg = MarkdownMessage.builder()
+        .title(buildInfo)
+        .items(items)
+        .atMobiles(atMobiles)
+        .build();
+
+        System.out.println(markDownMsg.toJson());
+        logger.info("markDownMsg = " + markDownMsg.toJson());
+
+        if (!StringUtils.isBlank(message)) {
+            sendMessage(markDownMsg);
+        }
     }
 
     private void sendLinkMessage(String link, String msg, String title, String pic) {
@@ -150,6 +205,14 @@ public class DingdingServiceImpl implements DingdingService {
         post.releaseConnection();
     }
 
+    private void sendMessage(DingMessage message) {
+        DingTalkClient dingTalkClient = DingTalkClient.getInstance();
+        try {
+            dingTalkClient.sendMessage(accessToken, message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private HttpClient getHttpClient() {
         HttpClient client = new HttpClient();

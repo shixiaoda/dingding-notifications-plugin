@@ -31,6 +31,11 @@ public class DingdingNotifier extends Notifier {
     
     private boolean onAbort;
 
+    private String notifyPeople;
+    private String message;
+    private String imageUrl;
+    private String jumpUrl;
+
     public String getJenkinsURL() {
         return jenkinsURL;
     }
@@ -57,8 +62,24 @@ public class DingdingNotifier extends Notifier {
         return accessToken;
     }
 
+    public String getNotifyPeople() {
+        return notifyPeople;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public String getJumpUrl() {
+        return jumpUrl;
+    }
+
     @DataBoundConstructor
-    public DingdingNotifier(String accessToken, boolean onStart, boolean onSuccess, boolean onFailed, boolean onAbort, String jenkinsURL) {
+    public DingdingNotifier(String accessToken, boolean onStart, boolean onSuccess, boolean onFailed, boolean onAbort, String jenkinsURL, String notifyPeople, String message, String imageUrl, String jumpUrl) {
         super();
         this.accessToken = accessToken;
         this.onStart = onStart;
@@ -66,10 +87,14 @@ public class DingdingNotifier extends Notifier {
         this.onFailed = onFailed;
         this.onAbort = onAbort;
         this.jenkinsURL = jenkinsURL;
+        this.notifyPeople = notifyPeople;
+        this.message = message;
+        this.imageUrl = imageUrl;
+        this.jumpUrl = jumpUrl;
     }
 
     public DingdingService newDingdingService(AbstractBuild build, TaskListener listener) {
-        return new DingdingServiceImpl(jenkinsURL, accessToken, onStart, onSuccess, onFailed, onAbort, listener, build);
+        return new DingdingServiceImpl(jenkinsURL, accessToken, onStart, onSuccess, onFailed, onAbort, listener, build, notifyPeople, message, imageUrl, jumpUrl);
     }
 
     @Override
