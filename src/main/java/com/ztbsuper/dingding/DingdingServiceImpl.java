@@ -62,7 +62,7 @@ public class DingdingServiceImpl implements DingdingService {
 
     private String accessToken;
 
-    public DingdingServiceImpl(String jenkinsURL, String token, boolean onStart, boolean onSuccess, boolean onFailed, boolean onAbort, TaskListener listener, AbstractBuild build, String notifyPeople, String message, String imageUrl, String jumpUrl) {
+    public DingdingServiceImpl(String jenkinsURL, String token, boolean onStart, boolean onSuccess, boolean onFailed, boolean onAbort, TaskListener listener, AbstractBuild build, String notifyPeople, String message, String imageUrl, String jumpUrl, String accessToken2) {
         this.jenkinsURL = jenkinsURL;
         this.onStart = onStart;
         this.onSuccess = onSuccess;
@@ -75,7 +75,7 @@ public class DingdingServiceImpl implements DingdingService {
         this.message = message;
         this.imageUrl = imageUrl;
         this.jumpUrl = jumpUrl;
-        this.accessToken = token;
+        this.accessToken = accessToken2;
     }
 
     @Override

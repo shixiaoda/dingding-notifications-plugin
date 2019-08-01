@@ -13,6 +13,7 @@
   <f:entry title="钉钉access token" field="accessToken">
     <f:textbox  />
   </f:entry>
+
   <f:entry title="在启动构建时通知">
       <f:checkbox name="onStart" value="true" checked="${instance.isOnStart()}"/>
   </f:entry>
@@ -26,7 +27,7 @@
       <f:checkbox name="onAbort" value="true" checked="${instance.isOnAbort()}"/>
   </f:entry>
 
-  <f:entry title="构建成功时 @ (用,分割)" field="notifyPeople">
+  <f:entry title="构建成功时 @手机号 (用,分割、有验证长度11位)" field="notifyPeople">
       <f:textbox />
   </f:entry>
         
@@ -41,4 +42,9 @@
   <f:entry title="构建成功时 跳转地址" field="jumpUrl">
       <f:textbox  />
   </f:entry>
+
+  <f:entry title="构建成功时 accessToken" field="accessToken2">
+    <f:textbox  />
+  </f:entry>
+
 </j:jelly>
